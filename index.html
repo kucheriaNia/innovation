@@ -13,7 +13,7 @@
 
     .container {
       width: 90%;
-      max-width: 750px;
+      max-width: 850px;
       margin: 30px auto;
       background: white;
       padding: 25px;
@@ -24,6 +24,7 @@
     h1 {
       text-align: center;
       color: #1b7f3a;
+      margin-bottom: 5px;
     }
 
     .subtitle {
@@ -46,7 +47,7 @@
       margin-top: 10px;
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -57,12 +58,12 @@
 
     button {
       margin-top: 15px;
-      padding: 12px 18px;
+      padding: 10px 14px;
       border: none;
       border-radius: 8px;
       background: #1b7f3a;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
     }
 
@@ -72,10 +73,26 @@
 
     .reset-btn {
       background: #d9534f;
-      margin-left: 10px;
+      margin-left: 8px;
     }
 
     .reset-btn:hover {
+      background: #b52b27;
+    }
+
+    .edit-btn {
+      background: #f0ad4e;
+    }
+
+    .edit-btn:hover {
+      background: #c98212;
+    }
+
+    .delete-btn {
+      background: #d9534f;
+    }
+
+    .delete-btn:hover {
       background: #b52b27;
     }
 
@@ -135,6 +152,17 @@
       color: #777;
       font-size: 13px;
     }
+
+    @media screen and (max-width: 600px) {
+      table {
+        font-size: 12px;
+      }
+
+      button {
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+    }
   </style>
 </head>
 
@@ -146,10 +174,26 @@
 
     <div class="input-box">
       <label>Appliance Name</label>
-      <input type="text" id="appliance" placeholder="Example: Fan, TV, AC">
+      <select id="appliance" onchange="fillWattage()">
+        <option value="">Select Appliance</option>
+        <option value="Fan" data-watt="75">Fan</option>
+        <option value="LED Light" data-watt="12">LED Light</option>
+        <option value="Tube Light" data-watt="40">Tube Light</option>
+        <option value="TV" data-watt="120">TV</option>
+        <option value="Refrigerator" data-watt="250">Refrigerator</option>
+        <option value="AC" data-watt="1500">AC</option>
+        <option value="Cooler" data-watt="200">Cooler</option>
+        <option value="Washing Machine" data-watt="500">Washing Machine</option>
+        <option value="Microwave" data-watt="1200">Microwave</option>
+        <option value="Geyser" data-watt="2000">Geyser</option>
+        <option value="Iron" data-watt="1000">Iron</option>
+        <option value="Laptop" data-watt="65">Laptop</option>
+        <option value="Mobile Charger" data-watt="10">Mobile Charger</option>
+        <option value="Mixer Grinder" data-watt="750">Mixer Grinder</option>
+      </select>
 
       <label>Wattage</label>
-      <input type="number" id="watt" placeholder="Example: 75">
+      <input type="number" id="watt" placeholder="Auto-filled wattage, you can edit it">
 
       <label>Hours Used Per Day</label>
       <input type="number" id="hours" placeholder="Example: 8">
@@ -160,7 +204,7 @@
       <label>Electricity Rate per Unit ₹</label>
       <input type="number" id="rate" placeholder="Example: 8">
 
-      <button onclick="addAppliance()">Add Appliance</button>
+      <button id="addButton" onclick="addAppliance()">Add Appliance</button>
       <button class="reset-btn" onclick="resetApp()">Reset</button>
     </div>
 
@@ -172,6 +216,7 @@
         <th>Days</th>
         <th>Units</th>
         <th>Cost ₹</th>
+        <th>Action</th>
       </tr>
     </table>
 
@@ -191,6 +236,19 @@
 
   <script>
     let appliances = [];
+    let editIndex = -1;
+
+    function fillWattage() {
+      let applianceDropdown = document.getElementById("appliance");
+      let selectedOption = applianceDropdown.options[applianceDropdown.selectedIndex];
+      let watt = selectedOption.getAttribute("data-watt");
+
+      if (watt) {
+        document.getElementById("watt").value = watt;
+      } else {
+        document.getElementById("watt").value = "";
+      }
+    }
 
     function addAppliance() {
       let appliance = document.getElementById("appliance").value;
@@ -216,15 +274,17 @@
         cost: cost
       };
 
-      appliances.push(item);
+      if (editIndex === -1) {
+        appliances.push(item);
+      } else {
+        appliances[editIndex] = item;
+        editIndex = -1;
+        document.getElementById("addButton").innerText = "Add Appliance";
+      }
 
       showTable();
       showResult(rate);
-
-      document.getElementById("appliance").value = "";
-      document.getElementById("watt").value = "";
-      document.getElementById("hours").value = "";
-      document.getElementById("days").value = "";
+      clearInputFields();
     }
 
     function showTable() {
@@ -238,6 +298,7 @@
           <th>Days</th>
           <th>Units</th>
           <th>Cost ₹</th>
+          <th>Action</th>
         </tr>
       `;
 
@@ -250,8 +311,38 @@
             <td>${appliances[i].days}</td>
             <td>${appliances[i].units.toFixed(2)}</td>
             <td>${appliances[i].cost.toFixed(2)}</td>
+            <td>
+              <button class="edit-btn" onclick="editAppliance(${i})">Edit</button>
+              <button class="delete-btn" onclick="deleteAppliance(${i})">Delete</button>
+            </td>
           </tr>
         `;
+      }
+    }
+
+    function editAppliance(index) {
+      let item = appliances[index];
+
+      document.getElementById("appliance").value = item.name;
+      document.getElementById("watt").value = item.watt;
+      document.getElementById("hours").value = item.hours;
+      document.getElementById("days").value = item.days;
+
+      editIndex = index;
+      document.getElementById("addButton").innerText = "Update Appliance";
+    }
+
+    function deleteAppliance(index) {
+      appliances.splice(index, 1);
+
+      let rate = Number(document.getElementById("rate").value);
+
+      showTable();
+
+      if (appliances.length > 0 && rate > 0) {
+        showResult(rate);
+      } else {
+        resetResultOnly();
       }
     }
 
@@ -305,8 +396,31 @@
       document.getElementById("tip").innerText = tipText;
     }
 
+    function clearInputFields() {
+      document.getElementById("appliance").value = "";
+      document.getElementById("watt").value = "";
+      document.getElementById("hours").value = "";
+      document.getElementById("days").value = "";
+    }
+
+    function resetResultOnly() {
+      document.getElementById("totalUnits").innerText = "Total Monthly Units: 0";
+      document.getElementById("totalCost").innerText = "Estimated Monthly Bill: ₹0";
+      document.getElementById("monster").innerText = "Energy Monster: None";
+      document.getElementById("ecoScore").innerText = "Eco Score: -";
+      document.getElementById("tip").innerText = "Tip will appear here.";
+    }
+
     function resetApp() {
       appliances = [];
+      editIndex = -1;
+
+      document.getElementById("appliance").value = "";
+      document.getElementById("watt").value = "";
+      document.getElementById("hours").value = "";
+      document.getElementById("days").value = "";
+      document.getElementById("rate").value = "";
+      document.getElementById("addButton").innerText = "Add Appliance";
 
       document.getElementById("applianceTable").innerHTML = `
         <tr>
@@ -316,14 +430,11 @@
           <th>Days</th>
           <th>Units</th>
           <th>Cost ₹</th>
+          <th>Action</th>
         </tr>
       `;
 
-      document.getElementById("totalUnits").innerText = "Total Monthly Units: 0";
-      document.getElementById("totalCost").innerText = "Estimated Monthly Bill: ₹0";
-      document.getElementById("monster").innerText = "Energy Monster: None";
-      document.getElementById("ecoScore").innerText = "Eco Score: -";
-      document.getElementById("tip").innerText = "Tip will appear here.";
+      resetResultOnly();
     }
   </script>
 
