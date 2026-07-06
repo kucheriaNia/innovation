@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Power Saver</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef9f1;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 750px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1b7f3a;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    .input-box {
+      background: #f3fff6;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccebd5;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #1b7f3a;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #145c2b;
+    }
+
+    .reset-btn {
+      background: #d9534f;
+      margin-left: 10px;
+    }
+
+    .reset-btn:hover {
+      background: #b52b27;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #1b7f3a;
+      color: white;
+      padding: 10px;
+    }
+
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .result-box {
+      margin-top: 25px;
+      padding: 18px;
+      border-radius: 12px;
+      background: #e9f7ff;
+      border-left: 6px solid #1b7f3a;
+    }
+
+    .result-box h2 {
+      margin-top: 0;
+      color: #1b7f3a;
+    }
+
+    .energy-monster {
+      color: #d9534f;
+      font-weight: bold;
+    }
+
+    .eco-score {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1b7f3a;
+    }
+
+    .tip {
+      background: #fff7d6;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #777;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Smart Power Saver</h1>
+    <p class="subtitle">Electricity Bill Predictor and Energy Monster Detector</p>
+
+    <div class="input-box">
+      <label>Appliance Name</label>
+      <input type="text" id="appliance" placeholder="Example: Fan, TV, AC">
+
+      <label>Wattage</label>
+      <input type="number" id="watt" placeholder="Example: 75">
+
+      <label>Hours Used Per Day</label>
+      <input type="number" id="hours" placeholder="Example: 8">
+
+      <label>Days Used Per Month</label>
+      <input type="number" id="days" placeholder="Example: 30">
+
+      <label>Electricity Rate per Unit ₹</label>
+      <input type="number" id="rate" placeholder="Example: 8">
+
+      <button onclick="addAppliance()">Add Appliance</button>
+      <button class="reset-btn" onclick="resetApp()">Reset</button>
+    </div>
+
+    <table id="applianceTable">
+      <tr>
+        <th>Appliance</th>
+        <th>Watt</th>
+        <th>Hours/Day</th>
+        <th>Days</th>
+        <th>Units</th>
+        <th>Cost ₹</th>
+      </tr>
+    </table>
+
+    <div class="result-box">
+      <h2>Result</h2>
+      <p id="totalUnits">Total Monthly Units: 0</p>
+      <p id="totalCost">Estimated Monthly Bill: ₹0</p>
+      <p id="monster">Energy Monster: None</p>
+      <p id="ecoScore" class="eco-score">Eco Score: -</p>
+      <p id="tip" class="tip">Tip will appear here.</p>
+    </div>
+
+    <footer>
+      Formula: Units = Watt × Hours × Days ÷ 1000
+    </footer>
+  </div>
+
+  <script>
+    let appliances = [];
+
+    function addAppliance() {
+      let appliance = document.getElementById("appliance").value;
+      let watt = Number(document.getElementById("watt").value);
+      let hours = Number(document.getElementById("hours").value);
+      let days = Number(document.getElementById("days").value);
+      let rate = Number(document.getElementById("rate").value);
+
+      if (appliance === "" || watt <= 0 || hours <= 0 || days <= 0 || rate <= 0) {
+        alert("Please fill all details correctly.");
+        return;
+      }
+
+      let units = (watt * hours * days) / 1000;
+      let cost = units * rate;
+
+      let item = {
+        name: appliance,
+        watt: watt,
+        hours: hours,
+        days: days,
+        units: units,
+        cost: cost
+      };
+
+      appliances.push(item);
+
+      showTable();
+      showResult(rate);
+
+      document.getElementById("appliance").value = "";
+      document.getElementById("watt").value = "";
+      document.getElementById("hours").value = "";
+      document.getElementById("days").value = "";
+    }
+
+    function showTable() {
+      let table = document.getElementById("applianceTable");
+
+      table.innerHTML = `
+        <tr>
+          <th>Appliance</th>
+          <th>Watt</th>
+          <th>Hours/Day</th>
+          <th>Days</th>
+          <th>Units</th>
+          <th>Cost ₹</th>
+        </tr>
+      `;
+
+      for (let i = 0; i < appliances.length; i++) {
+        table.innerHTML += `
+          <tr>
+            <td>${appliances[i].name}</td>
+            <td>${appliances[i].watt}</td>
+            <td>${appliances[i].hours}</td>
+            <td>${appliances[i].days}</td>
+            <td>${appliances[i].units.toFixed(2)}</td>
+            <td>${appliances[i].cost.toFixed(2)}</td>
+          </tr>
+        `;
+      }
+    }
+
+    function showResult(rate) {
+      let totalUnits = 0;
+      let totalCost = 0;
+      let monster = appliances[0];
+
+      for (let i = 0; i < appliances.length; i++) {
+        totalUnits += appliances[i].units;
+        totalCost += appliances[i].cost;
+
+        if (appliances[i].units > monster.units) {
+          monster = appliances[i];
+        }
+      }
+
+      document.getElementById("totalUnits").innerText =
+        "Total Monthly Units: " + totalUnits.toFixed(2);
+
+      document.getElementById("totalCost").innerText =
+        "Estimated Monthly Bill: ₹" + totalCost.toFixed(2);
+
+      document.getElementById("monster").innerHTML =
+        "Energy Monster: <span class='energy-monster'>" + monster.name + "</span>";
+
+      let ecoText = "";
+      let tipText = "";
+
+      if (totalUnits < 100) {
+        ecoText = "Eco Score: Excellent";
+        tipText = "Great! Your electricity usage is low.";
+      } else if (totalUnits < 200) {
+        ecoText = "Eco Score: Good";
+        tipText = "Good usage. Switch off lights and fans when not needed.";
+      } else if (totalUnits < 350) {
+        ecoText = "Eco Score: Average";
+        tipText = "Try reducing high-power appliances like AC, geyser, or heater.";
+      } else {
+        ecoText = "Eco Score: Needs Improvement";
+        tipText = "Your usage is high. Reduce AC/geyser time and use LED lights.";
+      }
+
+      let oneHourSaving = (monster.watt * 1 * monster.days / 1000) * rate;
+
+      tipText += " If you reduce " + monster.name +
+        " by 1 hour daily, you can save about ₹" +
+        oneHourSaving.toFixed(2) + " per month.";
+
+      document.getElementById("ecoScore").innerText = ecoText;
+      document.getElementById("tip").innerText = tipText;
+    }
+
+    function resetApp() {
+      appliances = [];
+
+      document.getElementById("applianceTable").innerHTML = `
+        <tr>
+          <th>Appliance</th>
+          <th>Watt</th>
+          <th>Hours/Day</th>
+          <th>Days</th>
+          <th>Units</th>
+          <th>Cost ₹</th>
+        </tr>
+      `;
+
+      document.getElementById("totalUnits").innerText = "Total Monthly Units: 0";
+      document.getElementById("totalCost").innerText = "Estimated Monthly Bill: ₹0";
+      document.getElementById("monster").innerText = "Energy Monster: None";
+      document.getElementById("ecoScore").innerText = "Eco Score: -";
+      document.getElementById("tip").innerText = "Tip will appear here.";
+    }
+  </script>
+
+</body>
+</html>
